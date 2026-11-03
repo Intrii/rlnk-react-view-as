@@ -19,32 +19,32 @@ export {
   createViewAsSystem,
   type CreateViewAsSystemOptions,
   type ViewAsSystem,
-} from './create-view-as-system'
+} from "./create-view-as-system";
 
 export {
   createViewAsStore,
   type CreateViewAsStoreOptions,
   type ViewAsState,
   type ViewAsStore,
-} from './create-view-as-store'
+} from "./create-view-as-store";
 
 export {
   createUseEffectiveRole,
   type CreateUseEffectiveRoleOptions,
-} from './create-use-effective-role'
+} from "./create-use-effective-role";
 
 export {
   createUseViewAsController,
   type CreateUseViewAsControllerOptions,
   type ViewAsRoleOption,
   type UseViewAsControllerResult,
-} from './create-use-view-as-controller'
+} from "./create-use-view-as-controller";
 
-export { permissionSetMatches } from './permission-set-matches'
+export { permissionSetMatches } from "./permission-set-matches";
 
 export type {
   RoleData,
   UseEffectiveRoleResult,
   /** @deprecated 用 `RoleData`;v0.2 前保留 alias */
   CustomRoleData,
-} from './types'
+} from "./types";

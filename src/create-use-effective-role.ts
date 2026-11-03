@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo } from "react";
 
-import type { ViewAsStore } from './create-view-as-store'
-import { permissionSetMatches } from './permission-set-matches'
-import type { RoleData, UseEffectiveRoleResult } from './types'
+import type { ViewAsStore } from "./create-view-as-store";
+import { permissionSetMatches } from "./permission-set-matches";
+import type { RoleData, UseEffectiveRoleResult } from "./types";
 
 /**
  * Consumer 傳的 config,建 useEffectiveRole 用。
@@ -15,26 +15,26 @@ export interface CreateUseEffectiveRoleOptions<TSystemRole extends string> {
    * 全部 system role code (runtime 用來驗值);寫成 `as const` 陣列讓 TS 推
    * TSystemRole。
    */
-  systemRoles: readonly TSystemRole[]
+  systemRoles: readonly TSystemRole[];
   /**
    * 判斷此 actualRole 有沒有資格切 view-as。通常只有 super_admin true。
    */
-  canViewAs: (actualRole: TSystemRole | null) => boolean
+  canViewAs: (actualRole: TSystemRole | null) => boolean;
   /**
    * 系統 role → effective permissions 的 map。View-as 切到 system role
    * 時直接查此表。
    */
-  rolePermissions: Record<TSystemRole, ReadonlySet<string>>
+  rolePermissions: Record<TSystemRole, ReadonlySet<string>>;
   /**
    * Role code → 顯示名。System / custom 都會過這個 lookup;system 通常從自家
    * ROLE_LABEL 表拿。回 undefined = 沒定義,hook 退回原字面。
    */
-  labelFor: (code: string) => string | undefined
+  labelFor: (code: string) => string | undefined;
   /**
    * Consumer 提供的 hook,回目前登入 user 的 actual role。
    * 通常包 authStore:`() => useAuthStore((s) => s.currentUser?.role ?? null)`。
    */
-  useActualRole: () => TSystemRole | null
+  useActualRole: () => TSystemRole | null;
   /**
    * (選配) Consumer 提供的 hook,回**所有** role list (system + custom;kit
    * 不 filter)。view-as 切到某 role 時,kit 從此 list 拿 permissions + name。
@@ -44,7 +44,7 @@ export interface CreateUseEffectiveRoleOptions<TSystemRole extends string> {
    * Return `undefined` = 資料還沒載入 (kit 會 fallback 到 rolePermissions);
    * `[]` = 明確無 custom role。
    */
-  useRolesData?: () => RoleData[] | undefined
+  useRolesData?: () => RoleData[] | undefined;
   /**
    * (選配) permission literal 前置轉換 — 給共用 SPA (admin 前綴) 的情境。
    *
@@ -55,10 +55,10 @@ export interface CreateUseEffectiveRoleOptions<TSystemRole extends string> {
    *
    * 不傳 = 不做任何轉換,原字面存進 set。
    */
-  normalizePermission?: (permission: string) => string
+  normalizePermission?: (permission: string) => string;
 }
 
-const EMPTY_SET: ReadonlySet<string> = new Set()
+const EMPTY_SET: ReadonlySet<string> = new Set();
 
 /**
  * 工廠 — 傳 config 進去,拿一個綁定該 config 的 useEffectiveRole hook 回來。
@@ -76,21 +76,21 @@ export function createUseEffectiveRole<TSystemRole extends string>(
     useActualRole,
     useRolesData,
     normalizePermission,
-  } = options
+  } = options;
 
-  const systemRoleSet: ReadonlySet<string> = new Set(systemRoles)
+  const systemRoleSet: ReadonlySet<string> = new Set(systemRoles);
   const isSystemRoleCode = (v: unknown): v is TSystemRole =>
-    typeof v === 'string' && systemRoleSet.has(v)
+    typeof v === "string" && systemRoleSet.has(v);
 
-  const normalize = normalizePermission ?? ((p: string) => p)
+  const normalize = normalizePermission ?? ((p: string) => p);
 
   return function useEffectiveRole(): UseEffectiveRoleResult<TSystemRole> {
-    const actualRole = useActualRole()
-    const override = useViewAsStore((s) => s.effectiveRoleOverride)
-    const rolesData = useRolesData?.()
+    const actualRole = useActualRole();
+    const override = useViewAsStore((s) => s.effectiveRoleOverride);
+    const rolesData = useRolesData?.();
 
     return useMemo(() => {
-      const eligible = canViewAs(actualRole)
+      const eligible = canViewAs(actualRole);
 
       // 決定 override 是否**有效**:
       //   - System role → 直接算 valid (systemRoles config 本地驗)
@@ -104,38 +104,38 @@ export function createUseEffectiveRole<TSystemRole extends string>(
       const overrideKnown =
         override !== null &&
         (isSystemRoleCode(override) ||
-          (rolesData !== undefined && rolesData.some((r) => r.code === override)))
+          (rolesData !== undefined && rolesData.some((r) => r.code === override)));
 
       const overrideEligible =
-        eligible && override !== null && override !== actualRole && overrideKnown
-      const effectiveRole: string | null = overrideEligible ? override : actualRole
+        eligible && override !== null && override !== actualRole && overrideKnown;
+      const effectiveRole: string | null = overrideEligible ? override : actualRole;
 
       // 決 effective permissions:
       //   1. 沒切 / 切到自己 / override 無效 → 用 rolePermissions[actualRole]
       //   2. 切到 system role → rolePermissions[override]
       //   3. 切到 custom role → 從 rolesData 拿該 role 的 permissions
-      let effectivePermissions: ReadonlySet<string>
+      let effectivePermissions: ReadonlySet<string>;
       if (overrideEligible && rolesData) {
-        const role = rolesData.find((r) => r.code === override)
+        const role = rolesData.find((r) => r.code === override);
         if (role) {
-          effectivePermissions = new Set(role.permissions.map(normalize))
+          effectivePermissions = new Set(role.permissions.map(normalize));
         } else if (isSystemRoleCode(override)) {
-          effectivePermissions = rolePermissions[override]
+          effectivePermissions = rolePermissions[override];
         } else {
           // 理論上 overrideKnown 已擋掉;此分支 defensive
-          effectivePermissions = EMPTY_SET
+          effectivePermissions = EMPTY_SET;
         }
       } else if (isSystemRoleCode(effectiveRole)) {
-        effectivePermissions = rolePermissions[effectiveRole]
+        effectivePermissions = rolePermissions[effectiveRole];
       } else {
-        effectivePermissions = EMPTY_SET
+        effectivePermissions = EMPTY_SET;
       }
 
       // 顯示名:rolesData 優先,再 fallback labelFor,再退回原字面
-      let effectiveRoleName: string | null = null
+      let effectiveRoleName: string | null = null;
       if (effectiveRole) {
-        const fromData = rolesData?.find((r) => r.code === effectiveRole)?.name
-        effectiveRoleName = fromData ?? labelFor(effectiveRole) ?? effectiveRole
+        const fromData = rolesData?.find((r) => r.code === effectiveRole)?.name;
+        effectiveRoleName = fromData ?? labelFor(effectiveRole) ?? effectiveRole;
       }
 
       return {
@@ -146,7 +146,7 @@ export function createUseEffectiveRole<TSystemRole extends string>(
         canViewAs: eligible,
         hasPermission: (code) => permissionSetMatches(effectivePermissions, code),
         isRole: (code) => effectiveRole === code,
-      }
-    }, [actualRole, override, rolesData])
-  }
+      };
+    }, [actualRole, override, rolesData]);
+  };
 }

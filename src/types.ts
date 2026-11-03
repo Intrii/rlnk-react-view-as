@@ -7,37 +7,37 @@
  * `CustomRoleData` alias 保留 (deprecated,見 index.ts export)。
  */
 export interface RoleData {
-  code: string
-  name: string
+  code: string;
+  name: string;
   /**
    * 該 role 掛的 permissions (可能含 wildcard 字面,如 `*` / `prefix.*` /
    * `prefix.code`)。View-as 切到此 role 時 effective permissions 用這份。
    */
-  permissions: string[]
+  permissions: string[];
 }
 
 /**
  * @deprecated 用 `RoleData` — v0.2 之前保留 alias。
  */
-export type CustomRoleData = RoleData
+export type CustomRoleData = RoleData;
 
 export interface UseEffectiveRoleResult<TSystemRole extends string> {
   /** 登入時真實 role;永不被 view-as 改變 */
-  actualRole: TSystemRole | null
+  actualRole: TSystemRole | null;
   /**
    * UI render 用的 role code。可能 = actual,也可能是 view-as 切到的任意
    * role code (含 admin 自建的 custom role)。System role 是 TSystemRole
    * 字串;custom 則為 backend role.code 任意字串。
    */
-  effectiveRole: string | null
+  effectiveRole: string | null;
   /** effective role 顯示名 (rolesData 優先,再 fallback labelFor) */
-  effectiveRoleName: string | null
+  effectiveRoleName: string | null;
   /** 當前是否在 view-as 模式 (effective !== actual) */
-  isViewAs: boolean
+  isViewAs: boolean;
   /** 當前 user 是否**有資格**切 view-as (由 config.canViewAs 決定) */
-  canViewAs: boolean
+  canViewAs: boolean;
   /** 對 effective role 檢查 permission */
-  hasPermission: (code: string) => boolean
+  hasPermission: (code: string) => boolean;
   /** effective role 是否等於指定 code */
-  isRole: (code: string) => boolean
+  isRole: (code: string) => boolean;
 }

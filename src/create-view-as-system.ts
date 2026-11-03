@@ -1,18 +1,18 @@
 import {
   createUseEffectiveRole,
   type CreateUseEffectiveRoleOptions,
-} from './create-use-effective-role'
+} from "./create-use-effective-role";
 import {
   createUseViewAsController,
   type CreateUseViewAsControllerOptions,
   type UseViewAsControllerResult,
-} from './create-use-view-as-controller'
+} from "./create-use-view-as-controller";
 import {
   createViewAsStore,
   type CreateViewAsStoreOptions,
   type ViewAsStore,
-} from './create-view-as-store'
-import type { UseEffectiveRoleResult } from './types'
+} from "./create-view-as-store";
+import type { UseEffectiveRoleResult } from "./types";
 
 /**
  * 一次 config,拿回整組 view-as hook。
@@ -41,24 +41,24 @@ import type { UseEffectiveRoleResult } from './types'
  */
 export interface CreateViewAsSystemOptions<TSystemRole extends string>
   extends CreateViewAsStoreOptions {
-  systemRoles: readonly TSystemRole[]
-  canViewAs: (actualRole: TSystemRole | null) => boolean
-  rolePermissions: Record<TSystemRole, ReadonlySet<string>>
-  labelFor: (code: string) => string | undefined
-  useActualRole: () => TSystemRole | null
-  useRolesData?: CreateUseEffectiveRoleOptions<TSystemRole>['useRolesData']
-  normalizePermission?: CreateUseEffectiveRoleOptions<TSystemRole>['normalizePermission']
+  systemRoles: readonly TSystemRole[];
+  canViewAs: (actualRole: TSystemRole | null) => boolean;
+  rolePermissions: Record<TSystemRole, ReadonlySet<string>>;
+  labelFor: (code: string) => string | undefined;
+  useActualRole: () => TSystemRole | null;
+  useRolesData?: CreateUseEffectiveRoleOptions<TSystemRole>["useRolesData"];
+  normalizePermission?: CreateUseEffectiveRoleOptions<TSystemRole>["normalizePermission"];
   /**
    * (選配) view-as controller 的 role 排序 comparator。預設 system role 在前
    * 且照 systemRoles config 的順序;custom role 依 name locale compare。
    */
-  compareRoles?: CreateUseViewAsControllerOptions<TSystemRole>['compareRoles']
+  compareRoles?: CreateUseViewAsControllerOptions<TSystemRole>["compareRoles"];
 }
 
 export interface ViewAsSystem<TSystemRole extends string> {
-  useViewAsStore: ViewAsStore
-  useEffectiveRole: () => UseEffectiveRoleResult<TSystemRole>
-  useViewAsController: () => UseViewAsControllerResult
+  useViewAsStore: ViewAsStore;
+  useEffectiveRole: () => UseEffectiveRoleResult<TSystemRole>;
+  useViewAsController: () => UseViewAsControllerResult;
 }
 
 export function createViewAsSystem<TSystemRole extends string>(
@@ -75,9 +75,9 @@ export function createViewAsSystem<TSystemRole extends string>(
     useRolesData,
     normalizePermission,
     compareRoles,
-  } = options
+  } = options;
 
-  const useViewAsStore = createViewAsStore({ storageKey, storage })
+  const useViewAsStore = createViewAsStore({ storageKey, storage });
 
   const useEffectiveRole = createUseEffectiveRole<TSystemRole>(useViewAsStore, {
     systemRoles,
@@ -87,7 +87,7 @@ export function createViewAsSystem<TSystemRole extends string>(
     useActualRole,
     useRolesData,
     normalizePermission,
-  })
+  });
 
   const useViewAsController = createUseViewAsController<TSystemRole>(useViewAsStore, {
     systemRoles,
@@ -96,7 +96,7 @@ export function createViewAsSystem<TSystemRole extends string>(
     useActualRole,
     useRolesData,
     compareRoles,
-  })
+  });
 
-  return { useViewAsStore, useEffectiveRole, useViewAsController }
+  return { useViewAsStore, useEffectiveRole, useViewAsController };
 }

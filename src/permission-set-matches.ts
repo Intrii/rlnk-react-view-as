@@ -14,16 +14,13 @@
  * permissionSetMatches(new Set(['user.list']), 'user.read') === false
  * ```
  */
-export function permissionSetMatches(
-  permissions: ReadonlySet<string>,
-  code: string,
-): boolean {
-  if (permissions.has('*')) return true
-  if (permissions.has(code)) return true
-  const dotIdx = code.indexOf('.')
+export function permissionSetMatches(permissions: ReadonlySet<string>, code: string): boolean {
+  if (permissions.has("*")) return true;
+  if (permissions.has(code)) return true;
+  const dotIdx = code.indexOf(".");
   if (dotIdx > 0) {
-    const prefix = code.slice(0, dotIdx)
-    if (permissions.has(`${prefix}.*`)) return true
+    const prefix = code.slice(0, dotIdx);
+    if (permissions.has(`${prefix}.*`)) return true;
   }
-  return false
+  return false;
 }

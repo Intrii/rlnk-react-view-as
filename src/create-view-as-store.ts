@@ -1,5 +1,5 @@
-import { create, type StoreApi, type UseBoundStore } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import { create, type StoreApi, type UseBoundStore } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 /**
  * Zustand store state:override role code。null = 未切,用 actual。
@@ -8,13 +8,13 @@ import { createJSONStorage, persist } from 'zustand/middleware'
  * 那一層擋 — 這樣不用 store 依賴 auth,decoupled 乾淨。
  */
 export interface ViewAsState {
-  effectiveRoleOverride: string | null
-  setEffectiveRole: (code: string | null) => void
+  effectiveRoleOverride: string | null;
+  setEffectiveRole: (code: string | null) => void;
   /** 清 override(等同「回到我的視角」)。Consumer 應在 logout 時 call。 */
-  reset: () => void
+  reset: () => void;
 }
 
-export type ViewAsStore = UseBoundStore<StoreApi<ViewAsState>>
+export type ViewAsStore = UseBoundStore<StoreApi<ViewAsState>>;
 
 export interface CreateViewAsStoreOptions {
   /**
@@ -22,16 +22,16 @@ export interface CreateViewAsStoreOptions {
    * domain 不同 path)時要各自不同名,避免 localStorage / sessionStorage 撞到。
    * 建議格式 `<app>:view-as-role`,如 `org-mgmt:view-as-role`。
    */
-  storageKey: string
+  storageKey: string;
   /**
    * `session` (default) = 關 tab 就清,適合安全敏感的 admin SPA。
    * `local` = 跨 tab / 跨 session 保留,方便 dev 反覆測。
    */
-  storage?: 'session' | 'local'
+  storage?: "session" | "local";
 }
 
 export function createViewAsStore(options: CreateViewAsStoreOptions): ViewAsStore {
-  const { storageKey, storage = 'session' } = options
+  const { storageKey, storage = "session" } = options;
   return create<ViewAsState>()(
     persist(
       (set) => ({
@@ -41,10 +41,8 @@ export function createViewAsStore(options: CreateViewAsStoreOptions): ViewAsStor
       }),
       {
         name: storageKey,
-        storage: createJSONStorage(() =>
-          storage === 'local' ? localStorage : sessionStorage,
-        ),
+        storage: createJSONStorage(() => (storage === "local" ? localStorage : sessionStorage)),
       },
     ),
-  )
+  );
 }
