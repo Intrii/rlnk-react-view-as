@@ -1,0 +1,70 @@
+# 複製到 repo 根目錄的 lefthook.yml。
+# 安裝：brew install gitleaks lefthook python
+# 啟用：lefthook install && lefthook run sentry-verify --no-auto-install
+# 請複製整份範本；本地 guard 不依賴 remote，避免同步失敗仍可提交。
+# URL／ref 以 YAML anchor 共用；guard 自動檢查 configs 清單與對應快取目錄。
+# 調整 ref 時，仍須同步調整 remote 片段與 biome.json 中既有的 sentry-main 路徑。
+remotes:
+  - git_url: &sentry-url https://github.com/Intrii/sentry.git
+    ref: &sentry-ref v0.2.0
+    configs: [lefthook/gitleaks.yml, lefthook/commit-msg.yml, lefthook/biome.yml, lefthook/pre-push.yml]
+
+pre-commit:
+  commands:
+    sentry-guard:
+      env: &sentry-remote
+        SENTRY_REMOTE_URL: *sentry-url
+        SENTRY_REMOTE_REF: *sentry-ref
+      run: &sentry-guard |
+        fail() {
+          printf '%s\n' "錯誤：sentry 安裝檢查失敗：$1" \
+            '修法：先確認 git ls-remote https://github.com/Intrii/sentry.git 可用；設定 Git 憑證後重跑 lefthook install && lefthook run sentry-verify --no-auto-install。' >&2
+          exit 1
+        }
+        remote_ref=$(printf '%s' "$SENTRY_REMOTE_REF" | sed 's/-/--/g; s|/|-|g')
+        remote_dir=$(git rev-parse --git-path "info/lefthook-remotes/sentry-$remote_ref") || fail '無法取得 Git remote 快取路徑。'
+        [ -d "$remote_dir" ] || fail '缺少 sentry remote 目錄；同步可能因 Git 權限、憑證或 URL 異常而失敗。'
+        dump=$(lefthook dump) || fail '無法讀取 Lefthook 合併設定。'
+        configs=$(printf '%s\n' "$dump" | awk -v remote="$SENTRY_REMOTE_URL" '
+          /^remotes:$/ { in_remotes = 1; next }
+          in_remotes && /^[^ ]/ { exit }
+          in_remotes && /^  - / { selected = ($0 == "  - git_url: " remote); in_configs = 0 }
+          selected && /^    configs:$/ { in_configs = 1; next }
+          selected && in_configs && /^      - / { print substr($0, 9); next }
+          selected && /^    [^ ]/ { in_configs = 0 }
+        ')
+        [ -n "$configs" ] || fail '找不到 sentry remote 的 configs 清單；請保留範本的 remotes 設定。'
+        while IFS= read -r config; do
+          [ -f "$remote_dir/$config" ] || fail "缺少 sentry remote 設定檔：$config。"
+        done <<CONFIGS
+        $configs
+        CONFIGS
+        for hook in pre-commit commit-msg pre-push; do
+          hook_path=$(git rev-parse --git-path "hooks/$hook") || fail '無法取得 Git hook 路徑。'
+          [ -f "$hook_path" ] && [ -x "$hook_path" ] || fail "缺少可執行的 Git hook：$hook_path。"
+          grep -Fq "call_lefthook run \"$hook\"" "$hook_path" || fail "Git hook 不是 Lefthook 產生：$hook_path。"
+        done
+        if [ "${SENTRY_VERIFY_INSTALL:-0}" = 1 ]; then
+          GIT_TERMINAL_PROMPT=0 git -c credential.interactive=false ls-remote "$SENTRY_REMOTE_URL" >/dev/null 2>&1 || fail '無法讀取 sentry remote；請檢查 Git 權限、憑證與 URL（既有快取不代表同步成功）。'
+          for expected in pre-commit:gitleaks pre-commit:biome commit-msg:naming pre-push:pre-pr; do
+            printf '%s\n' "$dump" | awk -v hook="${expected%:*}" -v command="${expected#*:}" '
+              /^[^ ]/ { in_hook = ($0 == hook ":") }
+              in_hook && $0 == "    " command ":" { found = 1 }
+              END { exit !found }
+            ' || fail "Lefthook 合併設定缺少 remote 指令：$expected。"
+          done
+        fi
+
+commit-msg:
+  commands:
+    sentry-guard:
+      env: *sentry-remote
+      run: *sentry-guard
+
+sentry-verify:
+  commands:
+    sentry-guard:
+      env:
+        <<: *sentry-remote
+        SENTRY_VERIFY_INSTALL: "1"
+      run: *sentry-guard

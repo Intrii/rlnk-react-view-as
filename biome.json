@@ -1,0 +1,47 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
+  "extends": ["./.git/info/lefthook-remotes/sentry-v0.2.0/biome/base.json"],
+  "assist": {
+    "actions": { "source": { "organizeImports": "off" } }
+  },
+  "overrides": [
+    {
+      "includes": ["src/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noTernary": "off", "useNamingConvention": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["src/create-use-effective-role.ts", "src/create-use-view-as-controller.ts"],
+      "linter": {
+        "rules": { "correctness": { "noComponentHookFactories": "off" } }
+      }
+    },
+    {
+      "includes": ["src/create-use-effective-role.ts"],
+      "linter": {
+        "rules": { "style": { "useExportsLast": "off" } }
+      }
+    },
+    {
+      "includes": ["src/create-use-view-as-controller.ts"],
+      "linter": {
+        "rules": { "style": { "noMagicNumbers": "off" } }
+      }
+    },
+    {
+      "includes": ["src/create-use-view-as-controller.ts", "src/permission-set-matches.ts"],
+      "linter": {
+        "rules": { "style": { "useBlockStatements": "off" } }
+      }
+    },
+    {
+      "includes": ["tsup.config.ts"],
+      "linter": {
+        "rules": { "style": { "noDefaultExport": "off" } }
+      }
+    }
+  ]
+}

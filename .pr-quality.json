@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "project": { "name": "rlnk-react-view-as", "type": "typescript" },
+  "baseRef": "origin/main",
+  "evidenceOutput": ".local-reports/pr-evidence/{branch}.json",
+  "localReportDirectory": ".local-reports",
+  "sourcePaths": ["src"],
+  "additionalSourceFiles": [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsup.config.ts",
+    "biome.json",
+    "lefthook.yml",
+    ".pr-quality.json"
+  ],
+  "excludeFromSourceHash": ["node_modules", "dist", ".local-reports"],
+  "requiredChecks": ["format", "lint", "naming", "secretScan", "typecheck", "build"],
+  "checks": {
+    "typecheck": { "command": "npm run typecheck", "localCommand": "npm run typecheck" },
+    "build": { "command": "npm run build" }
+  },
+  "ci": { "setupCommand": "npm ci" }
+}
